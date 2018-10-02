@@ -1,0 +1,31 @@
+1.assets的icon.styl还是按自己的弄，其它的可以模仿
+
+2.做东西时要明确区分 dev 和 prod 的依赖包
+    npm i --save-dev  <packname>  
+        工程构建（开发时、“打包”时）依赖 ；例：xxx-cli , less-loader , babel-loader...
+
+    npm i --save <packname> 
+        项目（运行时、发布到生产环境时）依赖；例：antd,element,vue,react...
+
+    关于如何区分 dev 和 prod 的依赖包
+
+    例如，你写了一个 proxy的插件，依赖了 request模块，这个时候，发布以后如果
+    别人使用必须同时安装 request 模块，这个就是 dependencies
+
+    还是在开发一个模块的时候， 如果这个时候你需要搞一个工具检查你写的代码、或者
+    babel转译、less转译。在使用的时候呢，根本不需要这些，它们只负责编译时调用，这
+    个就是 devDependencies
+
+3.关于组建命名的规范：
+    文件夹名：文件夹名都是小写
+    文件名： ( 一句话：只有主组件是大写开头 )
+        通用组件放在src里的components里，文件名全小写。
+        主组件放在pages里，文件名大写开头
+        主组件的私有组件放在pages/xxx/components里，文件名小写
+       
+    export default {name} / import
+        驼峰命名 例如：m-header --> MHeader
+        import MHeader from ...
+    
+    标签全小写
+        <m-header></m-header>
