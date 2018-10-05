@@ -6,7 +6,7 @@ module.exports = {
     parser: 'babel-eslint'
   },
   env: {
-    browser: true,
+    browser: true
   },
   extends: [
     // https://github.com/vuejs/eslint-plugin-vue#priority-a-essential-error-prevention
@@ -16,9 +16,7 @@ module.exports = {
     'standard'
   ],
   // required to lint *.vue files
-  plugins: [
-    'vue'
-  ],
+  plugins: ['vue'],
   // add your custom rules here
   rules: {
     // allow async-await
@@ -27,11 +25,8 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     // 允许空文件后面有空行
     'eol-last': 0,
-    // 关闭语句不给分号结尾
-    "semi": [0],
-    //空行最多不能超过100行
-    "no-multiple-empty-lines": [0, { "max": 100 }],
-    //关闭禁止混用tab和空格
-    "no-mixed-spaces-and-tabs": [0],
+    'indent': [2, 2, {
+      'SwitchCase': 2 // 针对switch case的缩进
+    }],
   }
 }

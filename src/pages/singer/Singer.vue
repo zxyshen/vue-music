@@ -1,16 +1,15 @@
 <template>
-    <div>
-        Singer
-    </div>
+  <div>
+    singer
+  </div>
 </template>
 
 <script>
 export default {
-  name: 'Singer'
+  name: 'singer'
+
 }
 </script>
 
 <style lang="stylus" scoped>
 </style>
-
-

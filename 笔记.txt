@@ -29,3 +29,35 @@
     
     标签全小写
         <m-header></m-header>
+
+4.关于什么时候需要在data里定义属性的问题。
+    如过该属性需要上template，那么就需要定义在data里。
+
+5.jsonp是可以解决跨域、但解决是的同源策略的跨域。
+如果后端给接口设置了host和referer，jsonp就会获取失败。
+这时候就需要依靠代理了。
+var app = express()
+var apiRoutes = express.Router()
+apiRoutes.get('/getDiscList', function (req, res) {
+  var url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
+  axios.get(url, {
+    headers: {
+      referer: 'https://c.y.qq.com/',
+      host: 'c.y.qq.com'
+    },
+    params: req.query
+  }).then((response) => {
+    res.json(response.data)
+  }).catch((e) => {
+    console.log(e)
+  })
+})
+
+6.slider组件的按钮有点延迟，看着不舒服。
+
+7.better-scroll下一定要被一个整的div包裹
+
+8.fastclick会阻止better-scroll派发的click事件。
+（新版本好像没有这个问题了）如果遇到了就在要点击的地方加一个needclick class就行
+
+9.<img src="" width="24" height="24">
