@@ -31,7 +31,7 @@
         <m-header></m-header>
 
 4.关于什么时候需要在data里定义属性的问题。
-    如过该属性需要上template，那么就需要定义在data里。
+    如过该属性需要上template或者watch，那么就需要定义在data里。
 
 5.jsonp是可以解决跨域、但解决是的同源策略的跨域。
 如果后端给接口设置了host和referer，jsonp就会获取失败。

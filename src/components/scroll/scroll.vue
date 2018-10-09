@@ -8,7 +8,7 @@
 import BScroll from 'better-scroll'
 export default {
   props: {
-    probetype: {
+    probeType: {
       type: Number,
       default: 1
     },
@@ -19,6 +19,10 @@ export default {
     data: {
       type: Array,
       default: null
+    },
+    listenScroll: {
+      type: Boolean,
+      default: false
     }
   },
   mounted () {
@@ -31,13 +35,25 @@ export default {
   methods: {
     _initScroll () {
       if (!this.$refs.wrapper) { return }
+
       this.scroll = new BScroll(this.$refs.wrapper, {
-        probetype: this.probetype,
+        probeType: this.probeType,
         click: this.click
       })
+      // 监听滚动事件 (better-scroll自己派发的scroll事件)
+      // pos 位置信息
+      this.listenScroll && this.scroll.on('scroll', pos => this.$emit('scroll', pos))
     },
     _refresh () {
       this.scroll && this.scroll.refresh()
+    },
+    // scrollTo(x, y, time, easing)
+    _scrollTo (...config) {
+      this.scroll && this.scroll.scrollTo(...config)
+    },
+    // scrollToElement(el, time, offsetX, offsetY, easing)
+    _scrollToElement (...config) {
+      this.scroll && this.scroll.scrollToElement(...config)
     }
   },
   watch: {
