@@ -22,9 +22,7 @@ export default {
     Listview
   },
   created () {
-    setTimeout(() => {
-      this._getSingerList()
-    }, 3000)
+    this._getSingerList()
   },
   methods: {
     _getSingerList () {
