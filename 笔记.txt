@@ -61,3 +61,117 @@ apiRoutes.get('/getDiscList', function (req, res) {
 （新版本好像没有这个问题了）如果遇到了就在要点击的地方加一个needclick class就行
 
 9.<img src="" width="24" height="24">
+
+
+10.关于配置路由
+    1.定义组件，引进路由
+
+    2.定义路由策略
+      routes: [
+            {
+                path: '/recommend',
+                name: 'Recommend',
+                component: Recommend
+            },
+            {
+                path: '/singer',
+                name: 'Singer',
+                component: Singer,
+                children: [
+                    {
+                    // singer/:id
+                    path: ':id',
+                    component: SingerDetail
+                    }
+                ]
+            }]
+
+    3.确定出口 router-view
+    4.在对应的组件下写路由跳转router-link/vm.$router.push，
+        (注意：
+            跳转必须是同级的，比如上面的，
+            只能在pages级别配置跳转/singer /recommend
+            而/singer/:id 只能在singer组件下配置跳转)
+
+
+11.简单状态管理实现
+    -创建store，并在主入口挂载进data
+        var store = {
+            debug: true,
+            state: {
+                message: 'Hello!'
+            },
+            setMessageAction (newValue) {
+                if (this.debug) console.log('setMessageAction triggered with', newValue)
+                this.state.message = newValue
+            },
+            clearMessageAction () {
+                if (this.debug) console.log('clearMessageAction triggered')
+                this.state.message = ''
+            }
+        }
+
+        -main.js
+        new Vue({
+            data: {
+                store
+            }
+        })
+        
+
+    -xxx.vue 组件内接收state
+        export default {
+            data () {
+                return {
+                    privateState: {},
+                    sharedState: this.$root.$data.store.state
+                }
+            } 
+        }
+    
+    -xxx.vue
+        export default {
+            data () {
+                return {
+                    privateState: {},
+                    sharedState: this.$root.$data.store.state
+                }
+            } 
+        }
+
+    如果要修改状态
+        this.$root.$data.store.setMessageAction(newValue)
+
+
+12.关于vuex的映射
+    mapMutations/mapActions 映射在methods里
+    mapState/mapGetters 映射在computed里
+
+
+13.页面刷新后vuex里面的数据会清空
+    解决办法
+        //在页面刷新时将vuex里的信息保存到sessionStorage/localstorage里
+
+        window.addEventListener("beforeunload",()=>{
+            sessionStorage.setItem("store",JSON.stringify(this.$store.state))
+        })
+
+        //在页面加载时读取sessionStorage/localstorage里的状态信息
+
+        if (sessionStorage.getItem("store") ) {
+            this.$store.replaceState(Object.assign({}, this.$store.state,JSON.parse(sessionStorage.getItem("store"))))
+        }
+
+14.对象通通大写
+
+15.props中数组默认为空的写法
+    data: {
+      type: Array,
+      // default: []
+      default: () => []
+    }
+
+16.下次img和image要统一一下。统一写img
+
+
+

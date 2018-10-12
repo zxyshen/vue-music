@@ -1,6 +1,9 @@
 <template>
   <div class="singer">
-    <listview :data="singers"></listview>
+    <listview @select="_onSelectSinger"
+              :data="singers"></listview>
+    <!-- 路由出口 -->
+    <router-view></router-view>
   </div>
 </template>
 
@@ -8,7 +11,9 @@
 import { getSingerList } from '@/api/singer.js'
 import { ERR_OK } from '@/api/config.js'
 import Singer from '@/assets/js/Singer.js'
-import Listview from './components/listview/listview'
+import Listview from './components/listview'
+import {mapMutations} from 'vuex'
+
 const HOT_SINGER_LEN = 10
 const HOT_NAME = '热门'
 export default {
@@ -25,9 +30,22 @@ export default {
     this._getSingerList()
   },
   methods: {
+    ...mapMutations({
+      setSinger: 'SET_SINGER'
+    }),
+    // 监听listview click事件
+    _onSelectSinger (singer) {
+      const id = singer.id
+      this.$router.push({
+        path: `/singer/${id}`
+      })
+      // mutation commit 改变state-singer
+      this.setSinger(singer)
+    },
     _getSingerList () {
       getSingerList().then(res => {
         if (res.code === ERR_OK) {
+          // _normalizeSingerList再传入
           this.singers = this._normalizeSingerList(res.data.list)
         }
       })
@@ -55,6 +73,7 @@ export default {
 
         // list->item.Findex就是hot/a/b/c/d
         const key = item.Findex
+        // 如果没有这个key就创建map[key]
         if (!map[key]) {
           map[key] = {
             title: key,

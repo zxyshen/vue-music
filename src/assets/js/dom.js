@@ -1,9 +1,9 @@
-export function hasClass(el, className) {
+export function hasClass (el, className) {
   let reg = new RegExp('(^|\\s)' + className + '(\\s|$)')
   return reg.test(el.className)
 }
 
-export function addClass(el, className) {
+export function addClass (el, className) {
   if (hasClass(el, className)) {
     return
   }
@@ -13,7 +13,7 @@ export function addClass(el, className) {
   el.className = newClass.join(' ')
 }
 
-export function getData(el, name, val) {
+export function getData (el, name, val) {
   const prefix = 'data-'
   if (val) {
     return el.setAttribute(prefix + name, val)
@@ -23,32 +23,20 @@ export function getData(el, name, val) {
 
 let elementStyle = document.createElement('div').style
 
-let vendor = (() => {
-  let transformNames = {
-    webkit: 'webkitTransform',
-    Moz: 'MozTransform',
-    O: 'OTransform',
-    ms: 'msTransform',
-    standard: 'transform'
-  }
-
+function vendor (prop) {
+  let ucProp = prop.charAt(0).toUpperCase() + prop.substr(1)
+  let transformNames = { webkit: `webkit${ucProp}`, Moz: `Moz${ucProp}`, O: `O${ucProp}`, ms: `ms${ucProp}`, standard: prop }
   for (let key in transformNames) {
     if (elementStyle[transformNames[key]] !== undefined) {
       return key
     }
   }
-
   return false
-})()
+}
 
-export function prefixStyle(style) {
-  if (vendor === false) {
-    return false
-  }
-
-  if (vendor === 'standard') {
-    return style
-  }
-
-  return vendor + style.charAt(0).toUpperCase() + style.substr(1)
+export function prefixStyle (style) {
+  const ret = vendor(style)
+  if (ret === false) { return false }
+  if (ret === 'standard') { return style }
+  return ret + style.charAt(0).toUpperCase() + style.substr(1)
 }

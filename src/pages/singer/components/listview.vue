@@ -12,7 +12,8 @@
           ref="listGroup">
         <h2 class="list-group-title">{{item.title}}</h2>
         <ul>
-          <li v-for="(innerItem, index) in item.items"
+          <li @click="_onSelectItem(innerItem)"
+              v-for="(innerItem, index) in item.items"
               :key="index"
               class="list-group-item">
             <img class="avatar"
@@ -35,7 +36,9 @@
         </li>
       </ul>
     </div>
-    <div class="list-fixed" v-show="fixedTitle" ref="fixed">
+    <div class="list-fixed"
+         v-show="fixedTitle"
+         ref="fixed">
       <h1 class="fixed-title">{{fixedTitle}}</h1>
     </div>
     <div v-show="!data.length"
@@ -168,6 +171,9 @@ export default {
         height += item.clientHeight
         this.listHeight.push(height)
       }
+    },
+    _onSelectItem (item) {
+      this.$emit('select', item)
     }
   }
 }

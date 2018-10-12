@@ -4,11 +4,12 @@ import App from './App'
 import router from './router'
 import fastclick from 'fastclick'
 import VueLazyLoad from 'vue-lazyload'
-
+import store from './store'
 import '@/assets/stylus/index.styl'
 
 Vue.config.productionTip = false
 fastclick.attach(document.body)
+
 Vue.use(VueLazyLoad, {
   loading: require('@/assets/image/Rolling-1s-60px.svg')
 })
@@ -17,6 +18,7 @@ Vue.use(VueLazyLoad, {
 new Vue({
   el: '#app',
   router,
+  store,
   render: h => h(App)
   // == components : {App}, template : "<App/>"
 })
