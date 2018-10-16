@@ -627,6 +627,7 @@ export default {
 
           &.disable {
             color: $color-theme-d;
+            // 点击失效
             pointer-events:none
           }
 
