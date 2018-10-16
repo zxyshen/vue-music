@@ -173,24 +173,68 @@ apiRoutes.get('/getDiscList', function (req, res) {
 
 16.下次img和image要统一一下。统一写img
 
+17.关于vuex的使用
+    首先在src中创建store文件夹
+    然后在main.js中注册插件
+    import store from './store'
+    new Vue({store})
 
-17.let elementStyle = document.createElement('div').style
+    然后回到store文件夹下创建 
+        state.js  存放公共数据
+        getters.js  用于对数据的映射
+        mutations.js  对数据的简单修改值操作
+        mutation-types.js  定义mutations的操作名
+        actions.js  批量的mutations操作或者异步操作
+        index.js  下面是模版
+            import Vue from 'vue'
+            import Vuex from 'vuex'
+            import * as actions from './actions'
+            import * as getters from './getters'
+            import state from './state'
+            import mutations from './mutations'
+            import createLogger from 'vuex/dist/logger'
 
-function vendor (prop) {
-  let ucProp = prop.charAt(0).toUpperCase() + prop.substr(1)
-  let transformNames = { webkit: `webkit${ucProp}`, Moz: `Moz${ucProp}`, O: `O${ucProp}`, ms: `ms${ucProp}`, standard: prop }
-  for (let key in transformNames) {
-    if (elementStyle[transformNames[key]] !== undefined) {
-      return key
-    }
-  }
-  return false
-}
+            Vue.use(Vuex)
 
-export function prefixStyle (style) {
-  const ret = vendor(style)
-  if (ret === false) { return false }
-  if (ret === 'standard') { return style }
-  return ret + style.charAt(0).toUpperCase() + style.substr(1)
-}
+            const debug = process.env.NODE_ENV !== 'production'
 
+            export default new Vuex.Store({
+                actions,
+                getters,
+                state,
+                mutations,
+                strict: debug,
+                plugins: debug ? [createLogger()] : []
+            })
+
+
+18.  vuex - Do not mutate vuex store state outside mutation handlers. 错误
+    注意所有引用类型的state，如果传进来的值(假设为list)也是一个引用类型
+  那么此时的state就绑定了list的地址
+  而vuex的说明是不允许mutate以外的任何地方修改state
+  这下就会报 Do not mutate vuex store state outside mutation handlers. 错误
+  原因是此时的state是浅克隆，外部如果直接修改list，也就直接修改了state
+  这就违背了vuex的原则
+  解决办法：
+       1.state.list = Object.assign([], list)
+       2.state.list = JSON.parse(JSON.stringify(list))
+  比较推荐方法2，方法1的话如果传进来的是数组，那么assign后是一个类数组，
+  类数组没有length属性
+
+
+19.歌曲封面会卡也没办法，除非设置多个源，然后设置timeout，去重新请求新源。
+    timeout的思路：
+    <img src="image.gif" id="img" />
+    <script>
+        var oImg = document.getElementById("img");
+        var timer = setTimeOut(function(){
+        alert("加载超时！请重试！");
+        },5000);
+        oImg.onload = function () {
+            clearTimeOut(timer);
+            timer = null;
+        }
+    </script>
+
+20.对随机播放方面做了点改进，下一首的时候index取一个除了自己之外的随机数，
+然后prev允许返回一次。

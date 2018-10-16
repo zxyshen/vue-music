@@ -11,12 +11,15 @@
          :style="bgStyle"
          ref="bimg">
       <div class="play-wrapper">
-        <div class="play"
-             v-show="songs.length>0"
-             ref="play">
-          <i class="icon-play"></i>
-          <span class="text">随机播放全部</span>
-        </div>
+        <transition name="show">
+          <div @click="_onClickRandomPlay"
+              class="play"
+               v-show="songs.length>0"
+               ref="play">
+            <i class="icon-play"></i>
+            <span class="text">随机播放全部</span>
+          </div>
+        </transition>
       </div>
     </div>
     <!-- <div class="bg-layer"
@@ -30,9 +33,11 @@
             class="list"
             ref="list">
       <div class="song-list-wrapper">
-        <song-list :songs="songs"></song-list>
+        <song-list :songs="songs"
+                   @select="_onListenSelect"></song-list>
       </div>
-      <div class="loading-container" v-show="!songs.length">
+      <div class="loading-container"
+           v-show="!songs.length">
         <loading></loading>
       </div>
     </scroll>
@@ -44,6 +49,8 @@ import SongList from '@/components/song-list/song-list'
 import Scroll from '@/components/scroll/scroll'
 import Loading from '@/components/loading/loading'
 import { prefixStyle } from '@/assets/js/dom'
+import { mapActions } from 'vuex'
+
 const RESERVED_HEIGHT = 40
 
 const transform = prefixStyle('transform')
@@ -118,9 +125,20 @@ export default {
     this.minTranslateY = -this.imageHeight + RESERVED_HEIGHT
   },
   methods: {
+    ...mapActions(['selectPlay', 'randomPlay']),
     // 捕获scroll传来的scroll事件
     _onListenScroll (pos) {
       this.scrollY = pos.y
+    },
+    _onClickRandomPlay () {
+      this.randomPlay({list: this.songs})
+    },
+    // 捕获song-list传来的select事件 - 执行播放
+    _onListenSelect (item, index) {
+      this.selectPlay({
+        list: this.songs,
+        index
+      })
     }
   }
 }
@@ -129,6 +147,14 @@ export default {
 <style lang="stylus" scoped>
 @import '~@/assets/stylus/variable';
 @import '~@/assets/stylus/mixin';
+
+.show-enter-active {
+  transition: all 0.4s;
+}
+
+.show-enter, .show-leave-to {
+  opacity: 0;
+}
 
 .music-list {
   position: fixed;

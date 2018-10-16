@@ -1,7 +1,10 @@
 <template>
   <div class="song-list">
-    <ul>
-      <li v-for="(item, index) in songs" :key="index" class="item">
+    <ul v-show="flag">
+      <li @click="_onSelectItem(item,index)"
+          v-for="(item, index) in songs"
+          :key="index"
+          class="item">
         <div class="content">
           <h2 class="name">{{item.name}}</h2>
           <p class="desc">{{ item | normalize }}</p>
@@ -13,6 +16,11 @@
 
 <script>
 export default {
+  data () {
+    return {
+      flag: false
+    }
+  },
   props: {
     songs: {
       type: Array,
@@ -22,6 +30,16 @@ export default {
   filters: {
     normalize (song) {
       return `${song.singer} - ${song.album}`
+    }
+  },
+  methods: {
+    _onSelectItem (item, index) {
+      this.$emit('select', item, index)
+    }
+  },
+  watch: {
+    songs (v) {
+      if (v.length > 2) { this.flag = true }
     }
   }
 }

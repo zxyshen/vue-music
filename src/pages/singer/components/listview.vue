@@ -125,7 +125,7 @@ export default {
       }
     },
     diff (diff) {
-      let fixedTop = (diff > 0 && diff < FIXED_TITLE_HEIGHT) ? diff - FIXED_TITLE_HEIGHT : 0
+      let fixedTop = (diff > 0 && diff < FIXED_TITLE_HEIGHT) ? diff - FIXED_TITLE_HEIGHT : -1
       // 为0 === 0 节流，也就是直接滑动右侧list-shortcut的时候，fixedTop总是0，
       // 这个时候就直接返回
       if (this.fixedTop === fixedTop) {
