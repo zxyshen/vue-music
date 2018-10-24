@@ -5,6 +5,7 @@
           v-for="(item, index) in songs"
           :key="index"
           class="item">
+        <i :class="index === currentSongIndex ? playCls:''"></i>
         <div class="content">
           <h2 class="name">{{item.name}}</h2>
           <p class="desc">{{ item | normalize }}</p>
@@ -15,16 +16,24 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 export default {
   data () {
     return {
-      flag: false
+      flag: false,
+      currentSongIndex: -1
     }
   },
   props: {
     songs: {
       type: Array,
       default: () => []
+    }
+  },
+  computed: {
+    ...mapGetters(['currentSong', 'sequenceList']),
+    playCls () {
+      return 'icon-currentMusic play'
     }
   },
   filters: {
@@ -40,6 +49,12 @@ export default {
   watch: {
     songs (v) {
       if (v.length > 2) { this.flag = true }
+    },
+    currentSong (currentSong) {
+      // 获取currentSong.id 遍历sequenceList，找到相同的id的item，添加class
+      this.currentSongIndex = this.sequenceList.findIndex((v) => {
+        return v.id === currentSong.id
+      })
     }
   }
 }
@@ -56,6 +71,17 @@ export default {
     box-sizing: border-box;
     height: 64px;
     font-size: $font-size-medium;
+    transition: 1s;
+    position: relative;
+
+    .play {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      font-size: 20px;
+      color: $color-theme;
+      transition: 0.3s;
+    }
 
     .content {
       flex: 1;

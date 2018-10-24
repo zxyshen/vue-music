@@ -1,6 +1,8 @@
 <template>
   <transition name="slide">
-    <singer-info :title="title" :bg-image="bgImage" :songs="songs"></singer-info>
+    <singer-info :title="title"
+                 :bg-image="bgImage"
+                 :songs="songs"></singer-info>
   </transition>
 </template>
 
@@ -63,8 +65,8 @@ export default {
             if (res.code === ERR_OK) {
               const svkey = res.data.items
               const songvkey = svkey[0].vkey
-              const Song = createSong(musicData, songvkey)
-              ret.push(Song)
+              const _Song = createSong(musicData, songvkey)
+              ret.push(_Song)
             }
           })
         }

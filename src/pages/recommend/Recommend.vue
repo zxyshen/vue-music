@@ -1,5 +1,5 @@
 <template>
-  <div class="recommend">
+  <div class="recommend" ref="recommend">
     <scroll class="recommend-content"
             :data="discList"
             ref="scroll">
@@ -47,6 +47,8 @@ import Slider from '@/components/slider/slider'
 import Loading from '@/components/loading/loading'
 import { getRecommend, getDiscList } from '@/api/recommend.js'
 import { ERR_OK } from '@/api/config.js'
+import { refreshListHeightMixin } from '@/assets/js/mixin.js'
+
 export default {
   name: 'Recommend',
   data () {
@@ -55,6 +57,7 @@ export default {
       discList: []
     }
   },
+  mixins: [refreshListHeightMixin],
   components: {
     Slider,
     Scroll,
@@ -65,6 +68,13 @@ export default {
     this._getDiscList()
   },
   methods: {
+    // 当mini播放器出现时(其实也就是playList出现)，改变scroll box的bottom。
+    // 然后刷新scroll，重新获取高度
+    _refreshListHeight (playList) {
+      const bottom = playList.length > 0 ? '60px' : ''
+      this.$refs.recommend.style.bottom = bottom
+      this.$refs.scroll._refresh()
+    },
     _getRecommend () {
       getRecommend().then(res => {
         if (res.code === ERR_OK) {

@@ -208,18 +208,23 @@ apiRoutes.get('/getDiscList', function (req, res) {
             })
 
 
-18.  vuex - Do not mutate vuex store state outside mutation handlers. 错误
-    注意所有引用类型的state，如果传进来的值(假设为list)也是一个引用类型
+18.   注意所有引用类型的state，如果传进来的值(假设为list)也是一个引用类型
   那么此时的state就绑定了list的地址
   而vuex的说明是不允许mutate以外的任何地方修改state
   这下就会报 Do not mutate vuex store state outside mutation handlers. 错误
   原因是此时的state是浅克隆，外部如果直接修改list，也就直接修改了state
   这就违背了vuex的原则
   解决办法：
-       1.state.list = Object.assign([], list)
+       1.state.list = Object.assign([],list);
+       (这里解释一下为什么直接Object.assign([],list)就可以了
+         因为此时list是对象数组，proto已经不需要获取了)
+
        2.state.list = JSON.parse(JSON.stringify(list))
   比较推荐方法2，方法1的话如果传进来的是数组，那么assign后是一个类数组，
   类数组没有length属性
+
+  ***修正：推荐方法1，方法2弄过之后，对象的proto属性被弄没了。
+  至于方法1返回的是一个类数组的问题可以用Array.from解决
 
 
 19.歌曲封面会卡也没办法，除非设置多个源，然后设置timeout，去重新请求新源。
@@ -238,3 +243,162 @@ apiRoutes.get('/getDiscList', function (req, res) {
 
 20.对随机播放方面做了点改进，下一首的时候index取一个除了自己之外的随机数，
 然后prev允许返回一次。
+
+
+21.重新整理一下深克隆的两个方法
+    方法一  JSON.parse(JSON.stringify(obj));
+        (缺点：它不能克隆proto, 也就是方法, 这个缺点很致命, 也就是说
+        当遇到带方法的对象, 或者对象数组都不可以用这个)
+        实例
+            let o1 = { a: 0 , b: { c: 0}};
+            let cloneO1 = JSON.parse(JSON.stringify(o1));
+
+    方法二 数组 Object.assign([], array);
+               对象 Object.assign(Object.create(Object.getPrototypeOf(obj), obj);
+                    (Object.assign({}, array)这个是错的，它克隆不了proto)
+        
+        (完美克隆)
+        
+        另外assign出来的都是对象、或者类数组，如果想转换成数组，
+        还需要Array.from
+
+
+
+22.转译、编译url（防止中文乱码）
+    encodeURL()  encodeURIComponent() 
+    decodeURI()  decodeURIComponent()
+
+    encodeURL/de~ 和 encodeURIComponent/de~的区别是
+    具有特殊含义的 ASCII 标点符号，encodeURI() 函数是不会进行转义的
+
+
+23.Math.max其实是求最小值的，Math.min是求最大值的
+    Math.max(0, 200) 最小值也要大于0
+    Math.min(0 , 200) 最大值不能超过0
+
+
+24.移动端touchstart touchmove touchend写法样例
+    在created中创建 this.touch = {}
+        _onTouchStart (e) {
+            this.touch.init = true
+            const touch = e.touches[0]
+            this.touch.startX = touch.pageX
+            this.touch.startY = touch.pageY
+        },
+        _onTouchMove (e) {
+            if (!this.touch.init) { return }
+            const touch = e.touches[0]
+            const deltaX = touch.pageX - this.touch.startX
+            const deltaY = touch.pageY - this.touch.startY
+            纵向滚动
+            if (Math.abs(deltaY) > Math.abs(deltaX)) {
+                ---
+            }
+            横向滚动
+            if (Math.abs(deltaY) < Math.abs(deltaX)) {
+                ---
+            }
+        },
+        _onTouchEnd (e) {
+            if (!this.touch.init) { return }
+            this.touch.init = false
+        },
+
+
+
+24.歌词切换还有点问题（单击不会触发纵向滚动返回，然后在touchend里又存在
+touch.percent缓存，所以会出现单击切换）这个问题不大，不能算个bug
+25.切换播放模式会重头播放（loop的问题）解决
+
+播放器新添功能
+1.完全随机播放（完成）
+2.song-list组件显示正在播放歌曲的图标（完成）
+3.拉歌词调进度（完成）
+    思路
+        1.监听touchstart事件，标记将要手动滚动onScroll = true，然后让lyric停止播放。
+        2.监听touchmove事件，让手动操作滚动时audio停止播放
+        2.再监听touchend事件，标记手动滚动结束onScroll = false，如果audio
+        正在播放则让lyric seek到currenttime。否则只记录currenttime，让togglePlay
+        去seek
+
+        3.然后监听scroll事件，判断是否是手动滚动(为了防止和自动播放歌词的滚动冲突)，
+        根据getBoundingClientRect找到离timeline最近的那一条歌词，
+        返回index，记录currenttime
+
+4.调节音量 （完成）
+
+
+26.mixins写法
+    export const playlistMixin = {
+        computed: {
+            ...mapGetters(['playlist'])
+        },
+        mounted () {
+            this.handlePlaylist(this.playlist)
+        },
+        activated () {
+            this.handlePlaylist(this.playlist)
+        },
+        watch: {
+            playlist (newVal) {
+            this.handlePlaylist(newVal)
+            }
+        },
+        methods: {
+            # 防止混入的组件中没有写handlePlaylist函数
+            handlePlaylist () {
+                throw new Error('component must implement handlePlaylist method')
+            }
+            # 这个函数是必须要写的，虽然要定义的功能要在对应的组件中进行重写。
+            # 但为了防止混入的组件中没有写handlePlaylist函数，这里还是必须要有的
+        }
+    }
+
+    混入规则
+    1.mixins在和组件的数据发生冲突时以组件数据优先。
+    2.同名钩子函数将混合为一个数组，因此都将被调用。
+        另外，混入对象的钩子将在组件自身钩子之前调用。
+
+    作用：可以理解为提取组件之间同一个功能的公共部分代码
+
+
+27. touch-action: none;
+    确定任何触摸事件都不会产生默认行为，但是 touch 事件照样触发。
+    为了照顾passive
+
+28.组件传prop，watch监听不到第一次传值。
+    解决办法
+        percent: {
+            immediate: true,
+            # deep: false, 深度监听
+            handler (percent) {
+                if (percent >= 0 && !this.touch.init) {
+                const barWidth = this.$refs.progressBar.clientWidth - PROGRESS_BTN_WIDTH
+                const offsetWidth = percent * barWidth
+                this._offset(offsetWidth)
+                }
+            }
+        }
+    使用这个也需要注意一下，因为是立即监听的。要确保handler中使用的东西都存在
+
+29.computed是要与响应式数据配合的
+   <!-- 计算属性 vs 侦听属性 -->
+    (computed)计算属性的原理就是创建一个元素，然后给他设置getter和setter(默认只有setter)，
+    然后给它的getter依赖响应式的数据。根据响应式的数据的改变，计算自身属性。
+    
+    (watch) 监听属性指的是监听一个值的变动，算是一个监听器。
+
+    当数据需要（随着其它数据变动而变动）时，应使用计算属性 
+    当需要（监听数据本身的变化）时，应使用监听属性
+
+
+30.发现一个bug 歌词还在加载的时候，拉动下面进度条。拉动滚动条后触发seek，然而在歌词加载后又会再次play，然后二者就会冲突了
+
+        解决办法
+            1.把play全部改成seek
+            2.在getLyric创建loadedLyric标记变量
+            3.如果没有loadedLyric，拉动进度条不触发seek。
+
+
+ 
+

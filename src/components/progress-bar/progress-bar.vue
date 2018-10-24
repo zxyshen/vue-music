@@ -4,6 +4,7 @@
        @click.prevent="_onClickProgress">
     <div class="bar-inner">
       <div class="progress"
+           :style="`backgroundColor:${progressColor}`"
            ref="progress"></div>
       <div class="progress-btn-wrapper"
            ref="progressBtn"
@@ -11,9 +12,10 @@
            @touchmove.prevent="_onTouchMoveProgress"
            @touchend="_onTouchEndProgress"
            @click.stop.prevent="">
-           <!-- 这个 click.stop.prevent ="" 是为了防止这里的点击事件冒泡到
+        <!-- 这个 click.stop.prevent ="" 是为了防止这里的点击事件冒泡到
            progressBar的click上 -->
-        <div class="progress-btn"></div>
+        <div class="progress-btn"
+             :style="`backgroundColor:${progressBtnColor};borderColor:${progressBtnBorderColor}`"></div>
       </div>
     </div>
   </div>
@@ -26,6 +28,18 @@ export default {
     percent: {
       type: Number,
       default: 0
+    },
+    progressColor: {
+      type: String,
+      default: '#ffcd32'
+    },
+    progressBtnColor: {
+      type: String,
+      default: '#ffcd32'
+    },
+    progressBtnBorderColor: {
+      type: String,
+      default: '#fff'
     }
   },
   watch: {
@@ -36,13 +50,25 @@ export default {
         this._offset(offsetWidth)
       }
     }
+    // percent: {
+    //   immediate: true,
+    //   handler (percent) {
+    //     if (percent >= 0 && !this.touch.init) {
+    //       const barWidth = this.$refs.progressBar.clientWidth - PROGRESS_BTN_WIDTH
+    //       const offsetWidth = percent * barWidth
+    //       this._offset(offsetWidth)
+    //     }
+    //   }
+    // }
   },
   created () {
     this.touch = {}
   },
   methods: {
     _onClickProgress (ev) {
-      this._offset(ev.offsetX)
+      let offsetWidth = ev.offsetX
+      offsetWidth = Math.min(this.$refs.progressBar.clientWidth - PROGRESS_BTN_WIDTH, Math.max(0, offsetWidth))
+      this._offset(offsetWidth)
       this._triggerPercent()
     },
     _offset (offsetWidth) {

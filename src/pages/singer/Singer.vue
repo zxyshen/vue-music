@@ -1,7 +1,7 @@
 <template>
-  <div class="singer">
+  <div class="singer" ref="singer">
     <listview @select="_onSelectSinger"
-              :data="singers"></listview>
+              :data="singers" ref="list"></listview>
     <!-- 路由出口 -->
     <router-view></router-view>
   </div>
@@ -12,7 +12,8 @@ import { getSingerList } from '@/api/singer.js'
 import { ERR_OK } from '@/api/config.js'
 import Singer from '@/assets/js/Singer.js'
 import Listview from './components/listview'
-import {mapMutations} from 'vuex'
+import { mapMutations } from 'vuex'
+import { refreshListHeightMixin } from '@/assets/js/mixin.js'
 
 const HOT_SINGER_LEN = 10
 const HOT_NAME = '热门'
@@ -23,6 +24,7 @@ export default {
       singers: []
     }
   },
+  mixins: [refreshListHeightMixin],
   components: {
     Listview
   },
@@ -33,6 +35,13 @@ export default {
     ...mapMutations({
       setSinger: 'SET_SINGER'
     }),
+    // 当mini播放器出现时(其实也就是playList出现)，改变scroll box的bottom。
+    // 然后刷新scroll，重新获取高度
+    _refreshListHeight (playList) {
+      const bottom = playList.length > 0 ? '60px' : ''
+      this.$refs.singer.style.bottom = bottom
+      this.$refs.list._refresh()
+    },
     // 监听listview click事件
     _onSelectSinger (singer) {
       const id = singer.id

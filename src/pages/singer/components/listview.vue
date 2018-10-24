@@ -174,6 +174,9 @@ export default {
     },
     _onSelectItem (item) {
       this.$emit('select', item)
+    },
+    _refresh () {
+      this.$refs.listview._refresh()
     }
   }
 }

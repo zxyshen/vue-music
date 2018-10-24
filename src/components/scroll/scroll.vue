@@ -23,6 +23,10 @@ export default {
     listenScroll: {
       type: Boolean,
       default: false
+    },
+    listenScrollEnd: {
+      type: Boolean,
+      default: false
     }
   },
   mounted () {
@@ -43,6 +47,7 @@ export default {
       // 监听滚动事件 (better-scroll自己派发的scroll事件)
       // pos 位置信息
       this.listenScroll && this.scroll.on('scroll', pos => this.$emit('scroll', pos))
+      this.listenScrollEnd && this.scroll.on('scrollEnd', pos => this.$emit('scrollEnd', pos))
     },
     _refresh () {
       this.scroll && this.scroll.refresh()

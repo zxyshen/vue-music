@@ -13,7 +13,7 @@
       <div class="play-wrapper">
         <transition name="show">
           <div @click="_onClickRandomPlay"
-              class="play"
+               class="play"
                v-show="songs.length>0"
                ref="play">
             <i class="icon-play"></i>
@@ -50,6 +50,7 @@ import Scroll from '@/components/scroll/scroll'
 import Loading from '@/components/loading/loading'
 import { prefixStyle } from '@/assets/js/dom'
 import { mapActions } from 'vuex'
+import { refreshListHeightMixin } from '@/assets/js/mixin.js'
 
 const RESERVED_HEIGHT = 40
 
@@ -76,6 +77,7 @@ export default {
       default: ''
     }
   },
+  mixins: [refreshListHeightMixin],
   components: {
     SongList,
     Scroll,
@@ -131,7 +133,7 @@ export default {
       this.scrollY = pos.y
     },
     _onClickRandomPlay () {
-      this.randomPlay({list: this.songs})
+      this.randomPlay({ list: this.songs })
     },
     // 捕获song-list传来的select事件 - 执行播放
     _onListenSelect (item, index) {
@@ -139,6 +141,13 @@ export default {
         list: this.songs,
         index
       })
+    },
+    // 当mini播放器出现时(其实也就是playList出现)，改变scroll box的bottom。
+    // 然后刷新scroll，重新获取高度
+    _refreshListHeight (playList) {
+      const bottom = playList.length > 0 ? '60px' : ''
+      this.$refs.list.$el.style.bottom = bottom
+      this.$refs.list._refresh()
     }
   }
 }
