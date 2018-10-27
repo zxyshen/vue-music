@@ -85,7 +85,7 @@
                     ref="lyricList"
                     :data="currentLyric && currentLyric.lines">
               <div class="lyric-wrapper">
-                <div v-if="playingLyric!==''">
+                <div v-if="loadedLyric">
                   <p ref="lyricLine"
                      class="text"
                      :class="{'current':currentLineNum === index}"
@@ -96,51 +96,52 @@
             </scroll>
           </div>
           <div class="loading-container"
-               v-if="currentShow==='lyric'&&playingLyric === ''">
+               v-if="currentShow==='lyric'&&!loadedLyric">
             <loading></loading>
           </div>
         </div>
-        <div class="bottom">
-          <div class="dot-wrapper">
-            <span class="dot"
-                  :class="{'active':currentShow === 'cd'}"></span>
-            <span class="dot"
-                  :class="{'active':currentShow === 'lyric'}"></span>
-          </div>
-          <div class="progress-wrapper">
-            <span class="time time-l">{{_formatInterval(currentTime)}}</span>
-            <div class="progress-bar-wrapper">
-              <progress-bar :percent="percent"
-                            @percentChange="_onPercentChange"></progress-bar>
+        <div class="
+               bottom">
+            <div class="dot-wrapper">
+              <span class="dot"
+                    :class="{'active':currentShow === 'cd'}"></span>
+              <span class="dot"
+                    :class="{'active':currentShow === 'lyric'}"></span>
             </div>
-            <span class="time time-r">{{_formatInterval(currentSong.duration)}}</span>
-          </div>
-          <div class="operators">
-            <div class="icon i-left"
-                 @click.prevent="_onClickChangeMode">
-              <i :class="iconForPlayMode"></i>
+            <div class="progress-wrapper">
+              <span class="time time-l">{{_formatInterval(currentTime)}}</span>
+              <div class="progress-bar-wrapper">
+                <progress-bar :percent="percent"
+                              @percentChange="_onPercentChange"></progress-bar>
+              </div>
+              <span class="time time-r">{{_formatInterval(currentSong.duration)}}</span>
             </div>
-            <div class="icon i-left"
-                 :class="prevCls">
-              <i class="icon-prev"
-                 @click="_onClickPrev"></i>
-            </div>
-            <div class="icon i-center"
-                 :class="disableCls">
-              <i @click="_onClickTogglePlay"
-                 :class="playIcon"></i>
-            </div>
-            <div class="icon i-right"
-                 :class="disableCls">
-              <i class="icon-next"
-                 @click="_onClickNext"></i>
-            </div>
-            <div class="icon i-right">
-              <i class="icon icon-not-favorite"></i>
+            <div class="operators">
+              <div class="icon i-left"
+                   @click.prevent="_onClickChangeMode">
+                <i :class="iconForPlayMode"></i>
+              </div>
+              <div class="icon i-left"
+                   :class="prevCls">
+                <i class="icon-prev"
+                   @click="_onClickPrev"></i>
+              </div>
+              <div class="icon i-center"
+                   :class="disableCls">
+                <i @click="_onClickTogglePlay"
+                   :class="playIcon"></i>
+              </div>
+              <div class="icon i-right"
+                   :class="disableCls">
+                <i class="icon-next"
+                   @click="_onClickNext"></i>
+              </div>
+              <div class="icon i-right">
+                <i class="icon icon-not-favorite"></i>
+              </div>
             </div>
           </div>
         </div>
-      </div>
     </transition>
 
     <transition name="mini">
@@ -213,7 +214,10 @@ export default {
       currentShow: 'cd',
       // 播放的歌词
       playingLyric: '',
-      audioVolume: 1
+      // 音量
+      audioVolume: 1,
+      // 是否加载完歌词
+      loadedLyric: false
     }
   },
   components: {
@@ -326,7 +330,7 @@ export default {
     }
   },
   created () {
-    this.touch = {}
+    this.middleTouch = {}
     this.$nextTick(() => {
       this.audio = this.$refs.audio
       this.oImg = this.$refs.img
@@ -361,7 +365,11 @@ export default {
       })
     },
     _onTouchStartMiddle (e) {
-      if (!this.currentLyric) { return }
+      if (!this.loadedLyric || this.playingLyric === '') {
+        this.middleTouch.init = false
+        return
+      }
+      this.middleTouch.init = true
       this.onScroll = true
       // 暂停歌词
       this.currentLyric && this.currentLyric.stop()
@@ -370,12 +378,13 @@ export default {
       this.$refs.timeLineR.style.opacity = 1
     },
     _onTouchMoveMiddle () {
+      if (!this.middleTouch.init) { return }
       // 拉歌词时先暂停播放
       this.audio.pause()
     },
     _onTouchEndMiddle (e) {
       this.onScroll = false
-      if (!this.currentLyric) { return }
+      if (!this.middleTouch.init) { return }
       this.audio.currentTime = this.currentTime
       // 如果处于播放状态则直接seek到相应时间
       // 如果处于暂停状态则只记录currentTime
@@ -413,9 +422,9 @@ export default {
           return
         }
         this.currentLyric = new Lyric(lyric, this._handleLyric)
+        this.loadedLyric = true
         if (this.playing) {
           this.currentLyric.seek(this.currentTime * 1000)
-          this.loadedLyric = true
         }
       }).catch(() => {
         this.currentLyric = null
@@ -863,7 +872,7 @@ export default {
           .time-line {
             flex: 1;
             height: 1px;
-            background: $color-text-d
+            background: $color-text-d;
             opacity: 0.4;
             transition: 0.5s;
           }

@@ -21,7 +21,7 @@
     文件名： ( 一句话：只有主组件是大写开头 )
         通用组件放在src里的components里，文件名全小写。
         主组件放在pages里，文件名大写开头
-        主组件的私有组件放在pages/xxx/components里，文件名小写
+        主组件的子路由放在pages/xxx/components里，文件名小写
        
     export default {name} / import
         驼峰命名 例如：m-header --> MHeader
@@ -207,6 +207,45 @@ apiRoutes.get('/getDiscList', function (req, res) {
                 plugins: debug ? [createLogger()] : []
             })
 
+        当需要使用时
+        1.先想想那些数据是需要多个组件共享的，写在state.js里
+            const state = { singer:{} , playList:[] } export default state
+        
+        2.想想要对state作那些操作，然后去mutation-types.js  定义mutations的操作名
+            export const SET_SINGER = 'SET_SINGER'
+            export const SET_PLAYING_STATE = 'SET_PLAYING_STATE'
+
+        3.在mutations.js里写具体的操作方法
+            const mutations = {  
+                [types.SET_SINGER] (state, singer) {
+                    state.singer = JSON.parse(JSON.stringify(singer))
+                },
+                [types.SET_PLAYING_STATE] (state, flag) {
+                    state.playing = flag
+                }
+            }
+
+        3.(如果有批量的mutations操作或者异步操作)就要定义在actions.js里
+            export const selectPlay = function ({ commit, state }, { list, index }) {
+                let playList = [...list]
+                commit(types.SET_SEQUENCE_LIST, list)
+                if (state.mode === playMode.random) {
+                    playList = shuffle(playList)
+                    index = _resetIndex(playList, list[index])
+                }
+                commit(types.SET_PLAYLIST, playList)
+                commit(types.SET_CURRENT_INDEX, index)
+                commit(types.SET_FULL_SCREEN, true)
+                commit(types.SET_PLAYING_STATE, true)
+            }
+
+        4.在getter里定义数据的获取
+            export const currentSong = (state) => {
+                return state.playList[state.currentIndex] || {}
+            }
+            export const playList = state => state.playList
+
+
 
 18.   注意所有引用类型的state，如果传进来的值(假设为list)也是一个引用类型
   那么此时的state就绑定了list的地址
@@ -218,6 +257,8 @@ apiRoutes.get('/getDiscList', function (req, res) {
        1.state.list = Object.assign([],list);
        (这里解释一下为什么直接Object.assign([],list)就可以了
          因为此时list是对象数组，proto已经不需要获取了)
+         正常情况是Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
+
 
        2.state.list = JSON.parse(JSON.stringify(list))
   比较推荐方法2，方法1的话如果传进来的是数组，那么assign后是一个类数组，

@@ -11,6 +11,7 @@ const mutations = {
   //      1.state.list = Object.assign([],list);
   //      (这里解释一下为什么直接Object.assign([],list)就可以了
   //        因为此时list是对象数组，proto已经不需要获取了)
+  //        正常情况是Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
 
   //      2.state.list = JSON.parse(JSON.stringify(list))
   // 比较推荐方法2，方法1的话如果传进来的是数组，那么assign后是一个类数组，
@@ -44,6 +45,12 @@ const mutations = {
   },
   [types.SET_CURRENT_INDEX] (state, index) {
     state.currentIndex = index
+  },
+  [types.SET_SONG_SHEET] (state, sheet) {
+    state.songSheet = Object.assign(Object.create(Object.getPrototypeOf(sheet)), sheet)
+  },
+  [types.SET_TOPLIST] (state, topList) {
+    state.topList = Object.assign(Object.create(Object.getPrototypeOf(topList)), topList)
   }
 }
 

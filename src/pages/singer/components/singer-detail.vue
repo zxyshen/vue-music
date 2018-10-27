@@ -1,18 +1,17 @@
 <template>
   <transition name="slide">
-    <singer-info :title="title"
+    <song-wrapper :title="title"
                  :bg-image="bgImage"
-                 :songs="songs"></singer-info>
+                 :songs="songs"></song-wrapper>
   </transition>
 </template>
 
 <script>
+import SongWrapper from '@/components/song-wrapper/song-wrapper'
 import { mapGetters } from 'vuex'
 import { getSingerDetail } from '@/api/singer.js'
 import { ERR_OK } from '@/api/config.js'
 import { createSong, _getMusic } from '@/assets/js/Song.js'
-import SingerInfo from './components/singer-info'
-
 export default {
   data () {
     return {
@@ -20,7 +19,7 @@ export default {
     }
   },
   components: {
-    SingerInfo
+    SongWrapper
   },
   computed: {
     // 接收更新后的state-singer
@@ -50,6 +49,8 @@ export default {
           // 分配data，渲染dom
           this.songs = this._normalizeSongList(res.data.list)
         }
+      }).catch((err) => {
+        console.log(err)
       })
     },
     _normalizeSongList (list) {

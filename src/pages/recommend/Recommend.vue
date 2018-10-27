@@ -1,5 +1,6 @@
 <template>
-  <div class="recommend" ref="recommend">
+  <div class="recommend"
+       ref="recommend">
     <scroll class="recommend-content"
             :data="discList"
             ref="scroll">
@@ -9,8 +10,10 @@
             <div v-for="(item, index) in recommends"
                  :key="index">
               <a :href="item.linkUrl">
-                <img :src="item.picUrl" alt="加载失败" @load="loadImg">
-            </a>
+                <img :src="item.picUrl"
+                     alt="加载失败"
+                     @load="_onLoadImg">
+              </a>
             </div>
           </slider>
         </div>
@@ -20,14 +23,17 @@
           <ul>
             <li v-for="(item, index) in discList"
                 :key="index"
-                class="item">
-              <div class="icon"><img width="60" height="60" v-lazy="item.imgurl"></div>
-                <div class="text">
-                  <h2 class="name"
-                      v-html="item.creator.name"></h2>
-                  <p class="desc"
-                     v-html="item.dissname"></p>
-                </div>
+                class="item"
+                @click="_onSelectItem(item)">
+              <div class="icon"><img width="60"
+                     height="60"
+                     v-lazy="item.imgurl"></div>
+              <div class="text">
+                <h2 class="name"
+                    v-html="item.creator.name"></h2>
+                <p class="desc"
+                   v-html="item.dissname"></p>
+              </div>
             </li>
           </ul>
         </div>
@@ -38,6 +44,7 @@
         <loading></loading>
       </div>
     </scroll>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -48,6 +55,7 @@ import Loading from '@/components/loading/loading'
 import { getRecommend, getDiscList } from '@/api/recommend.js'
 import { ERR_OK } from '@/api/config.js'
 import { refreshListHeightMixin } from '@/assets/js/mixin.js'
+import { mapMutations } from 'vuex'
 
 export default {
   name: 'Recommend',
@@ -68,6 +76,9 @@ export default {
     this._getDiscList()
   },
   methods: {
+    ...mapMutations({
+      setSongSheet: 'SET_SONG_SHEET'
+    }),
     // 当mini播放器出现时(其实也就是playList出现)，改变scroll box的bottom。
     // 然后刷新scroll，重新获取高度
     _refreshListHeight (playList) {
@@ -89,7 +100,13 @@ export default {
         }
       })
     },
-    loadImg () {
+    _onSelectItem (item) {
+      this.setSongSheet(item)
+      this.$router.push({
+        path: `/recommend/${item.dissid}`
+      })
+    },
+    _onLoadImg () {
       // 只作用一次的原因：这个是轮播图，轮播图只要有一张有大小的图就行了啊。
       // 其实还不如直接给img设定宽高呢，就想下面的discList
       if (!this.imgLoad) {

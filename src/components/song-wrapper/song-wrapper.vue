@@ -1,10 +1,9 @@
 <template>
   <div class="music-list">
-    <router-link to="/singer"
-                 tag="div"
-                 class="back">
+    <div @click="back"
+         class="back">
       <i class="icon-back"></i>
-    </router-link>
+    </div>
     <h1 class="title"
         v-html="title"></h1>
     <div class="bg-image"
@@ -34,6 +33,7 @@
             ref="list">
       <div class="song-list-wrapper">
         <song-list :songs="songs"
+                   :rank="rank"
                    @select="_onListenSelect"></song-list>
       </div>
       <div class="loading-container"
@@ -71,6 +71,10 @@ export default {
     songs: {
       type: Array,
       default: () => []
+    },
+    rank: {
+      type: Boolean,
+      default: false
     },
     title: {
       type: String,
@@ -134,6 +138,9 @@ export default {
     },
     _onClickRandomPlay () {
       this.randomPlay({ list: this.songs })
+    },
+    back () {
+      this.$router.back()
     },
     // 捕获song-list传来的select事件 - 执行播放
     _onListenSelect (item, index) {

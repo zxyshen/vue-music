@@ -11,7 +11,7 @@
 import { getSingerList } from '@/api/singer.js'
 import { ERR_OK } from '@/api/config.js'
 import Singer from '@/assets/js/Singer.js'
-import Listview from './components/listview'
+import Listview from '@/components/listview/listview'
 import { mapMutations } from 'vuex'
 import { refreshListHeightMixin } from '@/assets/js/mixin.js'
 
