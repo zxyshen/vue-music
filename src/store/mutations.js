@@ -51,6 +51,9 @@ const mutations = {
   },
   [types.SET_TOPLIST] (state, topList) {
     state.topList = Object.assign(Object.create(Object.getPrototypeOf(topList)), topList)
+  },
+  [types.SET_SEARCH_HISTORY] (state, history) {
+    state.searchHistory = Array.from(Object.assign([], history))
   }
 }
 

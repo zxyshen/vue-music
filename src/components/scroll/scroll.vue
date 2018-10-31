@@ -27,6 +27,18 @@ export default {
     listenScrollEnd: {
       type: Boolean,
       default: false
+    },
+    listenBeforeScroll: {
+      type: Boolean,
+      default: false
+    },
+    pullUp: {
+      type: Boolean,
+      default: false
+    },
+    pullDown: {
+      type: Boolean,
+      default: false
     }
   },
   mounted () {
@@ -44,10 +56,36 @@ export default {
         probeType: this.probeType,
         click: this.click
       })
-      // 监听滚动事件 (better-scroll自己派发的scroll事件)
+      // 派发滚动事件 (better-scroll自己派发的scroll事件)
       // pos 位置信息
       this.listenScroll && this.scroll.on('scroll', pos => this.$emit('scroll', pos))
       this.listenScrollEnd && this.scroll.on('scrollEnd', pos => this.$emit('scrollEnd', pos))
+      // 坑：上拉加载是会和下拉加载碰撞的，因为maxScrollY是最大的滚动距离。
+      // 下来加载更新数据时，如果当时数据为空，那么maxScrollY就是0，肯定会触发
+      // 上拉加载。
+
+      // 解决办法：设置标志变量，上拉加载和下拉加载不能同时使用
+      // movingDirectionY
+
+      // 上拉加载
+      this.pullUp && this.scroll.on('scrollEnd', pos => {
+        if (pos.y <= this.scroll.maxScrollY + 10 && this.scroll.movingDirectionY === 1) {
+          console.log('end')
+          this.$emit('scrollToEnd')
+        }
+      })
+      // 下拉加载
+      this.pullDown && this.scroll.on('touchEnd', pos => {
+        if (pos.y >= 30 && this.scroll.movingDirectionY === -1) {
+          console.log('top')
+          this.$emit('scrollToTop')
+        }
+      })
+
+      // 派发beforeScrool事件
+      this.listenBeforeScroll && this.scroll.on('beforeScrollStart', () => {
+        this.$emit('beforeScroll')
+      })
     },
     _refresh () {
       this.scroll && this.scroll.refresh()

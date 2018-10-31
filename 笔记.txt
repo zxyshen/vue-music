@@ -441,5 +441,81 @@ touch.percent缓存，所以会出现单击切换）这个问题不大，不能�
             3.如果没有loadedLyric，拉动进度条不触发seek。
 
 
- 
+31.规范一下实例属性写的顺序
+        props
+        components
+        mixins
+        filter
+        data
+        computed
+        watch
+        周期函数
+        method
+    
+32.arr.splice 和 str/arr.slice
+原来arr也有slice方法
 
+33.search-box.vue
+     <input type="text" class="box" :placeholder="placeholder" 
+     v-model="query">
+
+    _setQuery (q) {
+      this.query = q
+    }
+
+    search.vue
+    _onClickAddQuery (k) {
+      this.$refs.searchBox._setQuery(k)
+    }
+    
+34.再次强调计算属性不能传参
+
+35.规范一下方法的书写，如果是自定义方法就加_
+( 如果是类的或者派出去的借口或者styleclass则不用加_ )
+如果是监听事件的方法就加_on
+
+36.bug onTouchMiddle和middleClick冲突了
+    解决办法
+        设置一个标记变量在onscroll里，然后
+        if (e.touches[0].pageY !== this.middleTouch.startY) {
+            this.onScroll = true
+        }    
+
+37.不知道为什么在suggest的
+    normalize中加一层
+       _getMusic(item.songmid).then(res => {
+              if (res.code === ERR_OK) {
+                const svkey = res.data.items
+                const songvkey = svkey[0].vkey
+                const _Song = createSong(item, songvkey)
+                ret.push(_Song)
+              }
+       }
+    this.result和新数据就无法组合。
+    
+    更新解释：console.log(nResult)  ---这时候有个蓝色图标提示：
+    value below was evaluated just now
+    它解释是：在此处看到的值并不是console.log执行时候的值，
+    也就是说现在看到的值是不真实的。出现这种情况的原因是在这里出现了双重异步代码
+
+    解决办法：使用监听器。监听它的返回值，然后再让result cancat
+
+
+38. bug：上拉加载是会和下拉加载碰撞的，因为maxScrollY是最大的滚动距离。
+      下来加载更新数据时，如果当时数据为空，那么maxScrollY就是0，肯定会触发
+      上拉加载。
+
+      解决办法：设置标志变量，上拉加载和下拉加载不能同时使用
+      better-scroll已经为我们提供了判断movingDirectionY就行了
+      movingDirectionY = 1 代表向上滑
+      movingDirectionY = -1 代表向下滑
+
+39.           console.log(nResult)  ---这时候有个蓝色图标提示：value below was evaluated just now
+          解释是：在此处看到的值并不是console.log执行时候的值，也就是说现在看到的值是不真实的
+          出现这种情况的原因是在这里出现了双重异步代码
+
+          解决办法：使用监听器。监听result
+
+
+40.await无法在forEach中用，因为forEach有自己的上下文，且没有被async修饰
+解决办法，改用for of/in for

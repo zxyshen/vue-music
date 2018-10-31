@@ -286,6 +286,7 @@ export default {
       }
     },
     currentSong (newSong, oldSong) {
+      console.log(oldSong, newSong)
       // 第一种情况：如果切换的歌曲id压根就不存在，那就直接返回
       if (!newSong.id) { return }
       // 第二种情况：changeMode
@@ -293,7 +294,6 @@ export default {
         this.changeMode = false
         return
       }
-
       // 第三中情况：点击相同id的歌曲
       if (oldSong.id === newSong.id) {
         this._loop()
@@ -369,22 +369,28 @@ export default {
         this.middleTouch.init = false
         return
       }
+      this.onScroll = false
       this.middleTouch.init = true
-      this.onScroll = true
+      // 获取第一次点击的位置，为了不与click冲突
+      this.middleTouch.startY = e.touches[0].pageY
       // 暂停歌词
       this.currentLyric && this.currentLyric.stop()
       this.$refs.timeLine.style.opacity = 1
       this.$refs.timeLineL.style.opacity = 1
       this.$refs.timeLineR.style.opacity = 1
     },
-    _onTouchMoveMiddle () {
+    _onTouchMoveMiddle (e) {
       if (!this.middleTouch.init) { return }
-      // 拉歌词时先暂停播放
-      this.audio.pause()
+      // 回避click冲突
+      if (e.touches[0].pageY !== this.middleTouch.startY) {
+        this.onScroll = true
+        // 拉歌词时先暂停播放
+        this.audio.pause()
+      }
     },
     _onTouchEndMiddle (e) {
+      if (!this.middleTouch.init || !this.onScroll) { return }
       this.onScroll = false
-      if (!this.middleTouch.init) { return }
       this.audio.currentTime = this.currentTime
       // 如果处于播放状态则直接seek到相应时间
       // 如果处于暂停状态则只记录currentTime
@@ -529,37 +535,43 @@ export default {
       // if (!this.songReady || !this.imgReady) { return }
       if (!this.songReady) { return }
       let currentIndex = this.currentIndex
+
+      // 列表里只有一首歌
+      if (this.playList.length === 1) {
+        this._loop()
+        return
+      }
+
       if (action === 'prev') {
         // 判断mode
-        // 如果是随机播放，currentIndex = lastIndex
-        // 这个lastIndex只可以用一次，然后设置prev为disabled
+        // 如果是随机播放，currentIndex = lastIndex && 有上一个歌曲的播放记录
         if (this.mode === playMode.random && this.haveLastIndex) {
+          // 这个lastIndex只可以用一次，然后设置haveLastIndex = false
           currentIndex = this.lastIndex
           this.haveLastIndex = false
         } else {
           currentIndex -= 1
-        }
-
-        if (currentIndex === -1) {
-          currentIndex = this.playList.length - 1
+          // 如果currentIndex翻到了-1
+          if (currentIndex <= -1) {
+            currentIndex = this.playList.length - 1
+          }
         }
       } else if (action === 'next') {
-        // 判断mode
-        // 如果是随机播放，这里的currentIndex应该是取一个除了自己之外的随机数
-        // 然后保存上一次的currentIndex为lastIndex传给prev
-        // 这个lastIndex只可以用一次，然后设置prev为disabled
+        // 判断mode 如果是随机播放
         if (this.mode === playMode.random) {
+          // 保存上一次的currentIndex为lastIndex传给prev
           this.lastIndex = currentIndex
+          // 然后currentIndex再取一个除了自己之外的随机数
           while (currentIndex === this.lastIndex) {
             currentIndex = getRandomInt(0, this.playList.length - 1)
           }
+          // haveLastIndex 设为true
           this.haveLastIndex = true
         } else {
           currentIndex += 1
-        }
-
-        if (currentIndex === this.playList.length - 1) {
-          currentIndex = 0
+          if (currentIndex >= this.playList.length - 1) {
+            currentIndex = 0
+          }
         }
       }
       // 通过改变currentIndex来切换歌曲

@@ -1,3 +1,5 @@
+// 基础配置
+
 export const playMode = {
   // 顺序播放
   sequence: 0,

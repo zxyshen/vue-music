@@ -40,7 +40,7 @@ export default {
     _normalizeSongSheet (list) {
       let ret = []
       // 空数组不能foreach
-      if (!ret) { return }
+      if (!list) { return }
 
       list.forEach(item => {
         if (item.songid && item.albumid) {
