@@ -10,9 +10,13 @@
   正在播放则让lyric seek到currenttime。否则只记录currenttime，让togglePlay去seek。<br/>
   3.然后监听scroll事件，判断是否是手动滚动(为了防止和自动播放歌词的滚动冲突)，根据getBoundingClientRect找到离timeline最近的那一条歌词，返回index，记录currenttime。
 
+<br/>
+<br/>
 ## 用户界面优化
 > 滑动删除歌曲，全选删除喜欢歌曲等。并且在刚进入时，附送一个提示滑动删除的模层。
 
+<br/>
+<br/>
 ## 其它优化
 + ### 添加、删除喜欢歌曲时候tip提示
 + ### 喜欢歌曲时的动画
