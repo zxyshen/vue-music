@@ -9,7 +9,8 @@
          ref="shortcutWrapper">
       <scroll class="shortcut"
               :data="shortcut"
-              ref="shortcut">
+              ref="shortcut"
+              :refreshDelay="100">
         <!--
                   这里面hot-key和search-history都是异步获取的，单独传哪一个给
                   scroll都不合适
@@ -54,6 +55,11 @@
     <confirm ref="confirm"
              @confirm="_onDeleteAllSearchHistory"
              text="是否清空所有搜索历史?"></confirm>
+    <top-tip class="tip-title"
+             ref="topTip">
+      <i class="icon-ok"></i>
+      <span class="text">1首歌曲已经添加到播放队列</span>
+    </top-tip>
     <router-view></router-view>
   </div>
 </template>
@@ -64,27 +70,29 @@ import Suggest from '@/components/suggest/suggest'
 import SearchList from '@/components/search-list/search-list'
 import Confirm from '@/components/confirm/confirm'
 import Scroll from '@/components/scroll/scroll'
-import { refreshListHeightMixin } from '@/assets/js/mixin.js'
+import TopTip from '@/components/top-tip/top-tip'
+import { refreshListHeightMixin, searchMixin } from '@/assets/js/mixin.js'
 import { getHotKey } from '@/api/search'
 import { ERR_OK } from '@/api/config'
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions } from 'vuex'
 export default {
   components: {
     SearchBox,
     Suggest,
     SearchList,
     Confirm,
-    Scroll
+    Scroll,
+    TopTip
   },
-  mixins: [refreshListHeightMixin],
+  mixins: [refreshListHeightMixin, searchMixin],
   data () {
     return {
-      hotKey: [],
-      query: ''
+      hotKey: []
+      // query: ''
     }
   },
   computed: {
-    ...mapGetters(['searchHistory']),
+    // ...mapGetters(['searchHistory']),
     shortcut () {
       return this.hotKey.concat(this.searchHistory)
     }
@@ -94,6 +102,7 @@ export default {
       if (!q) {
         setTimeout(() => {
           // 页面突然不能滚动了，不知道为什么就刷新一下...
+          // 正确解释是scroll内容从none变为show，需要重新计算一下。
           this.$refs.shortcut._refresh()
         }, 20)
       }
@@ -103,7 +112,8 @@ export default {
     this._getHotKey()
   },
   methods: {
-    ...mapActions(['saveSearch', 'deleteSearch', 'clearSearch']),
+    // ...mapActions(['saveSearch', 'deleteSearch', 'clearSearch']),
+    ...mapActions(['clearSearch']),
     _onShowDeleteAllSearchHistoryConfirm () {
       this.$refs.confirm.show()
     },
@@ -120,25 +130,25 @@ export default {
       this.clearSearch()
     },
     // 监听search-list里派发的删除事件
-    _onDeleteOneSearchHistory (query) {
-      this.deleteSearch(query)
-    },
-    // 保存suggest传过来的搜索历史
-    _onSaveSearchHistory () {
-      this.saveSearch(this.query)
-    },
+    // _onDeleteOneSearchHistory (query) {
+    //   this.deleteSearch(query)
+    // },
+    // 点击歌曲，保存suggest传过来的搜索历史
+    // _onSaveSearchHistory () {
+    //   this.saveSearch(this.query)
+    // },
     // 滚动suggest时让input失去焦点
-    _onBlurInput () {
-      this.$refs.searchBox.blur()
-    },
+    // _onBlurInput () {
+    //   this.$refs.searchBox.blur()
+    // },
     // 监听search-box的input-value然后改变query
-    _onQueryChange (query) {
-      this.query = query
-    },
+    // _onQueryChange (query) {
+    //   this.query = query
+    // },
     // 点击热门搜索或者搜索历史，让k传到search-box里做input-value
-    _onClickAddQuery (k) {
-      this.$refs.searchBox._setQuery(k)
-    },
+    // _onClickAddQuery (k) {
+    //   this.$refs.searchBox._setQuery(k)
+    // },
     _getHotKey () {
       getHotKey().then(res => {
         if (res.code === ERR_OK) {

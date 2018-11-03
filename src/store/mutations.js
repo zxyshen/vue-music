@@ -54,6 +54,12 @@ const mutations = {
   },
   [types.SET_SEARCH_HISTORY] (state, history) {
     state.searchHistory = Array.from(Object.assign([], history))
+  },
+  [types.SET_PLAY_HISTORY] (state, history) {
+    state.playHistory = Array.from(Object.assign([], history))
+  },
+  [types.SET_FAVOURITE_LIST] (state, list) {
+    state.favouriteList = Array.from(Object.assign([], list))
   }
 }
 

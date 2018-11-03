@@ -39,6 +39,10 @@ export default {
     pullDown: {
       type: Boolean,
       default: false
+    },
+    refreshDelay: {
+      type: Number,
+      default: 20
     }
   },
   mounted () {
@@ -105,12 +109,10 @@ export default {
       // 如果有transition或者替换元素
       // 还需要在父组件中使用after-enter钩子或者监听例如img-onload的函数
       // 然后在里面再用一次this.scroll.refresh
-      // 或者在父组件中就定好高度
-      this.$nextTick(() => {
-        if (this.scroll) {
-          this.scroll.refresh()
-        }
-      })
+      // 或者在父组件中就定好高度再或者顶一个一个refreshDelay props
+      setTimeout(() => {
+        this._refresh()
+      }, this.refreshDelay)
     }
   }
 }

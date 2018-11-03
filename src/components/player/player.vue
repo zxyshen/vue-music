@@ -102,52 +102,55 @@
         </div>
         <div class="
                bottom">
-            <div class="dot-wrapper">
-              <span class="dot"
-                    :class="{'active':currentShow === 'cd'}"></span>
-              <span class="dot"
-                    :class="{'active':currentShow === 'lyric'}"></span>
+          <div class="dot-wrapper">
+            <span class="dot"
+                  :class="{'active':currentShow === 'cd'}"></span>
+            <span class="dot"
+                  :class="{'active':currentShow === 'lyric'}"></span>
+          </div>
+          <div class="progress-wrapper">
+            <span class="time time-l">{{_formatInterval(currentTime)}}</span>
+            <div class="progress-bar-wrapper">
+              <progress-bar :percent="percent"
+                            @percentChange="_onPercentChange"></progress-bar>
             </div>
-            <div class="progress-wrapper">
-              <span class="time time-l">{{_formatInterval(currentTime)}}</span>
-              <div class="progress-bar-wrapper">
-                <progress-bar :percent="percent"
-                              @percentChange="_onPercentChange"></progress-bar>
-              </div>
-              <span class="time time-r">{{_formatInterval(currentSong.duration)}}</span>
+            <span class="time time-r">{{_formatInterval(currentSong.duration)}}</span>
+          </div>
+          <div class="operators">
+            <div class="icon i-left"
+                 @click.prevent="_onClickChangeMode">
+              <i :class="iconForPlayMode"></i>
             </div>
-            <div class="operators">
-              <div class="icon i-left"
-                   @click.prevent="_onClickChangeMode">
-                <i :class="iconForPlayMode"></i>
-              </div>
-              <div class="icon i-left"
-                   :class="prevCls">
-                <i class="icon-prev"
-                   @click="_onClickPrev"></i>
-              </div>
-              <div class="icon i-center"
-                   :class="disableCls">
-                <i @click="_onClickTogglePlay"
-                   :class="playIcon"></i>
-              </div>
-              <div class="icon i-right"
-                   :class="disableCls">
-                <i class="icon-next"
-                   @click="_onClickNext"></i>
-              </div>
-              <div class="icon i-right">
-                <i class="icon icon-not-favorite"></i>
-              </div>
+            <div class="icon i-left"
+                 :class="prevCls">
+              <i class="icon-prev"
+                 @click="_onClickPrev"></i>
+            </div>
+            <div class="icon i-center"
+                 :class="disableCls">
+              <i @click="_onClickTogglePlay"
+                 :class="playIcon"></i>
+            </div>
+            <div class="icon i-right"
+                 :class="disableCls">
+              <i class="icon-next"
+                 @click="_onClickNext"></i>
+            </div>
+            <div class="icon i-right">
+              <!-- 下面两个方法在mixin里 -->
+              <i class="icon favourite-i"
+                 @click="_onToggleFavourite(currentSong)"
+                 :class="getFavouriteIcon(currentSong)"></i>
             </div>
           </div>
         </div>
+      </div>
     </transition>
 
     <transition name="mini">
       <div @click="_onClickOpen"
            class="mini-player"
-           v-show="!fullScreen">
+           v-show="fullScreen === false">
         <div class="icon">
           <img width="40"
                height="40"
@@ -168,11 +171,18 @@
                class="icon-mini"></i>
           </progress-circle>
         </div>
-        <div class="control">
+        <div class="control"
+             @click.stop="_onShowMiniPlayList">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <top-tip class="tip-title"
+             ref="topTip">
+      <i class="icon-ok"></i>
+      <span class="text">{{tipText}}</span>
+    </top-tip>
+    <mini-play-list ref="miniPlayList"></mini-play-list>
     <!-- 关于什么时候播放。就是在每次歌曲切换的时候播放
       化作vue就是 watch-currentSong的改变 -->
     <audio ref="audio"
@@ -187,15 +197,19 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 import animations from 'create-keyframe-animation'
 import ProgressBar from '@/components/progress-bar/progress-bar'
 import ProgressCircle from '@/components/progress-circle/progress-circle'
-import { playMode } from '@/assets/js/config.js'
-import { shuffle, getRandomInt } from '@/assets/js/util.js'
-import Lyric from 'lyric-parser'
 import Scroll from '@/components/scroll/scroll'
+import MiniPlayList from '@/components/mini-play-list/mini-play-list'
 import Loading from '@/components/loading/loading'
+import TopTip from '@/components/top-tip/top-tip'
+import { playMode } from '@/assets/js/config.js'
+// import { shuffle, getRandomInt } from '@/assets/js/util.js'
+import { getRandomInt } from '@/assets/js/util.js'
+import { playerMixin } from '@/assets/js/mixin'
+import Lyric from 'lyric-parser'
 
 export default {
   data () {
@@ -224,17 +238,21 @@ export default {
     ProgressBar,
     ProgressCircle,
     Scroll,
-    Loading
+    Loading,
+    MiniPlayList,
+    TopTip
   },
+  mixins: [playerMixin],
   computed: {
-    ...mapGetters(['fullScreen', 'sequenceList', 'playList', 'currentSong', 'playing', 'currentIndex', 'mode']),
-    iconForPlayMode () {
-      return this.mode === playMode.sequence ? 'icon-sequence'
-        : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
-    },
+    // ...mapGetters(['fullScreen', 'sequenceList', 'playList', 'currentSong', 'playing', 'currentIndex', 'mode']),
+    ...mapGetters(['fullScreen']),
     percent () {
       return this.currentTime / this.currentSong.duration
     },
+    // iconForPlayMode () {
+    //   return this.mode === playMode.sequence ? 'icon-sequence'
+    //     : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
+    // },
     volume () {
       // 第一个问题，组件传prop，watch是监听不到第一次传值的
       // 第二个问题
@@ -286,7 +304,6 @@ export default {
       }
     },
     currentSong (newSong, oldSong) {
-      console.log(oldSong, newSong)
       // 第一种情况：如果切换的歌曲id压根就不存在，那就直接返回
       if (!newSong.id) { return }
       // 第二种情况：changeMode
@@ -294,9 +311,10 @@ export default {
         this.changeMode = false
         return
       }
-      // 第三中情况：点击相同id的歌曲
+      // 第三中情况：点击相同id的歌曲就循环播放
+      // ps：这个逻辑不好，还是去掉吧
       if (oldSong.id === newSong.id) {
-        this._loop()
+        // this._loop()
         return
       }
 
@@ -339,13 +357,17 @@ export default {
     // this.songReady = false
   },
   methods: {
+    ...mapActions(['savePlayHistory']),
     ...mapMutations({
-      setFullScreen: 'SET_FULL_SCREEN',
-      setPlayingState: 'SET_PLAYING_STATE',
-      setCurrentIndex: 'SET_CURRENT_INDEX',
-      setPlayMode: 'SET_PLAY_MODE',
-      setPlayList: 'SET_PLAYLIST'
+      setFullScreen: 'SET_FULL_SCREEN'
+      // setPlayingState: 'SET_PLAYING_STATE',
+      // setCurrentIndex: 'SET_CURRENT_INDEX',
+      // setPlayMode: 'SET_PLAY_MODE',
+      // setPlayList: 'SET_PLAYLIST'
     }),
+    _onShowMiniPlayList () {
+      this.$refs.miniPlayList.show()
+    },
     // end
     _onScrollEndLyricToPercent () {
       this.onScroll = false
@@ -423,7 +445,7 @@ export default {
     // 获取歌词
     _getLyric () {
       this.loadedLyric = false
-      this.currentSong.getLyric().then((lyric) => {
+      this.currentSong && this.currentSong.getLyric().then((lyric) => {
         if (this.currentSong.lyric !== lyric) {
           return
         }
@@ -449,30 +471,30 @@ export default {
       }
       this.playingLyric = txt
     },
-    // 改变播放模式
-    _onClickChangeMode () {
-      // 给个标志位，防止改变播放模式时，currentSong接收到相同的id会执行loop方法
-      this.changeMode = true
-      // 每次点击都会 + 1 % 3 也就是依次取到 1 2 3
-      const mode = (this.mode + 1) % 3
-      // 改变播放模式
-      this.setPlayMode(mode)
-      let list = null
-      if (mode === playMode.random) {
-        // 打乱列表
-        list = shuffle(this.sequenceList)
-      } else {
-        list = this.sequenceList
-      }
-      // 改变列表，当前播放的歌曲不能变，所以在改变歌曲列表之前先保存
-      // 当前歌曲在对应列表中的index
-      this._resetCurrentIndex(list)
-      this.setPlayList(list)
-    },
-    _resetCurrentIndex (list) {
-      let index = list.findIndex(item => item.id === this.currentSong.id)
-      this.setCurrentIndex(index)
-    },
+    // // 改变播放模式
+    // _onClickChangeMode () {
+    //   // 给个标志位，防止改变播放模式时，currentSong接收到相同的id会执行loop方法
+    //   this.changeMode = true
+    //   // 每次点击都会 + 1 % 3 也就是依次取到 1 2 3
+    //   const mode = (this.mode + 1) % 3
+    //   // 改变播放模式
+    //   this.setPlayMode(mode)
+    //   let list = null
+    //   if (mode === playMode.random) {
+    //     // 打乱列表
+    //     list = shuffle(this.sequenceList)
+    //   } else {
+    //     list = this.sequenceList
+    //   }
+    //   // 改变列表，当前播放的歌曲不能变，所以在改变歌曲列表之前先保存
+    //   // 当前歌曲在对应列表中的index
+    //   this._resetCurrentIndex(list)
+    //   this.setPlayList(list)
+    // },
+    // _resetCurrentIndex (list) {
+    //   let index = list.findIndex(item => item.id === this.currentSong.id)
+    //   this.setCurrentIndex(index)
+    // },
     _onClickVolume () {
       if (this.audioVolume !== 0 && this.audioVolume !== -1) {
         this.lastVolume = this.audioVolume
@@ -569,7 +591,7 @@ export default {
           this.haveLastIndex = true
         } else {
           currentIndex += 1
-          if (currentIndex >= this.playList.length - 1) {
+          if (currentIndex > this.playList.length - 1) {
             currentIndex = 0
           }
         }
@@ -606,6 +628,7 @@ export default {
     // audio-src-onload-success
     _onCanplay () {
       this.songReady = true
+      this.savePlayHistory(this.currentSong)
     },
     // audio-src-onload-err
     _onErr () {
@@ -717,6 +740,23 @@ export default {
     width: 100%;
     top: 50%;
     transform: translateY(-50%);
+  }
+
+  .tip-title {
+    text-align: center;
+    padding: 18px 0;
+    font-size: 0;
+
+    .icon-ok {
+      font-size: $font-size-medium;
+      color: $color-theme;
+      margin-right: 4px;
+    }
+
+    .text {
+      font-size: $font-size-medium;
+      color: $color-text;
+    }
   }
 
   .normal-player {
@@ -1029,6 +1069,11 @@ export default {
 
         .i-right {
           text-align: left;
+          transition: 1s;
+
+          .favourite-i {
+            transition: 0.3s;
+          }
         }
 
         .icon-favorite {

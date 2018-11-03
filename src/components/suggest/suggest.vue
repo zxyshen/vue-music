@@ -50,6 +50,11 @@ export default {
     query: {
       type: String,
       default: ''
+    },
+    // 是否显示歌手，这个必须要传
+    showSinger: {
+      type: Boolean,
+      default: true
     }
   },
   components: {
@@ -68,7 +73,7 @@ export default {
       // 辅助watch
       searchSongs: [],
       // 是否显示歌手，这个必须要传
-      showSinger: true,
+      isShowSinger: this.showSinger,
       // 是否正在上拉加载数据
       onSearchMore: true,
       // loadingDesc
@@ -152,7 +157,7 @@ export default {
       }
       this.page++
       // Singer只显示一次
-      this.showSinger = false
+      this.isShowSinger = false
       this._search()
     },
     // 首次获取搜索数据
@@ -162,8 +167,8 @@ export default {
       this.result = []
       // hasMore showSinger page zhida pushover重置
       this.hasMore = true
-      this.showSinger = true
       this.page = 1
+      this.isShowSinger = this.showSinger
       this.pushOver = false
       this.zhida = null
       // 保证一开始是在顶部的
@@ -173,7 +178,7 @@ export default {
     // 主要加载函数
     _search () {
       // 第一层异步
-      search(this.query, this.page, this.showSinger, PERPAGE).then(res => {
+      search(this.query, this.page, this.isShowSinger, PERPAGE).then(res => {
         if (res.code === ERR_OK) {
           this.zhida = res.data.zhida
           // 第二层异步

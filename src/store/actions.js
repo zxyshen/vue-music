@@ -1,7 +1,9 @@
 import * as types from './mutation-types'
 import { playMode } from '@/assets/js/config.js'
 import { shuffle } from '@/assets/js/util.js'
-import { saveSearchHistory, deleteSearchHistory, clearSearchHistory } from '@/assets/js/cache.js'
+import { saveSearchHistory, deleteSearchHistory,
+  clearSearchHistory, savePlay, saveFavourite,
+  deleteFavourite, deleteAllFavourite, deletePlay, deleteAllPlay } from '@/assets/js/cache.js'
 
 // 清空搜索历史
 export const clearSearch = function ({ commit }) {
@@ -23,7 +25,7 @@ function _resetIndex (list, song) {
   return index
 }
 
-// 插入歌曲，用于搜索页面生成的playList
+// 插入歌曲，用于搜索/历史页面生成playList
 export const insertSong = function ({ commit, state }, song) {
   let playList = [...state.playList]
   let sequenceList = [...state.sequenceList]
@@ -72,7 +74,7 @@ export const insertSong = function ({ commit, state }, song) {
   commit(types.SET_PLAYLIST, playList)
   commit(types.SET_SEQUENCE_LIST, sequenceList)
   commit(types.SET_CURRENT_INDEX, currentIndex)
-  commit(types.SET_FULL_SCREEN, true)
+  // commit(types.SET_FULL_SCREEN, true)
   commit(types.SET_PLAYING_STATE, true)
 }
 
@@ -98,4 +100,58 @@ export const randomPlay = function ({ commit }, { list }) {
   commit(types.SET_CURRENT_INDEX, 0)
   commit(types.SET_FULL_SCREEN, true)
   commit(types.SET_PLAYING_STATE, true)
+}
+
+export const deleteSong = function ({commit, state}, song) {
+  let playList = [...state.playList]
+  let sequenceList = [...state.sequenceList]
+  let currentIndex = state.currentIndex
+  let pIndex = _resetIndex(playList, song)
+  playList.splice(pIndex, 1)
+  let sIndex = _resetIndex(sequenceList, song)
+
+  sequenceList.splice(sIndex, 1)
+  if (currentIndex > pIndex || currentIndex === playList.length) {
+    currentIndex--
+  }
+
+  commit(types.SET_PLAYLIST, playList)
+  commit(types.SET_SEQUENCE_LIST, sequenceList)
+  commit(types.SET_CURRENT_INDEX, currentIndex)
+
+  if (!playList.length) {
+    commit(types.SET_PLAYING_STATE, false)
+  }
+}
+
+export const deleteAllSong = function ({commit}) {
+  commit(types.SET_PLAYLIST, [])
+  commit(types.SET_SEQUENCE_LIST, [])
+  commit(types.SET_CURRENT_INDEX, -1)
+}
+
+export const savePlayHistory = function ({commit}, song) {
+  commit(types.SET_PLAY_HISTORY, savePlay(song))
+}
+
+export const deletePlayHistory = function ({commit}, song) {
+  commit(types.SET_PLAY_HISTORY, deletePlay(song))
+}
+
+export const deleteAllPlayHistory = function ({commit}) {
+  commit(types.SET_PLAY_HISTORY, deleteAllPlay())
+}
+
+export const saveFavouriteList = function ({commit}, song) {
+  commit(types.SET_FAVOURITE_LIST, saveFavourite(song))
+}
+
+// 清空之后要注意清空Songlist
+export const deleteFavouriteList = function ({commit}, song) {
+  commit(types.SET_FAVOURITE_LIST, deleteFavourite(song))
+}
+
+// 清空之后要注意清空Songlist
+export const deleteAllFavouriteList = function ({commit}) {
+  commit(types.SET_FAVOURITE_LIST, deleteAllFavourite())
 }

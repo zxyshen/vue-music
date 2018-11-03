@@ -7,6 +7,7 @@ import SingerDetail from '@/pages/singer/components/singer-detail'
 import Search from '@/pages/search/Search'
 import Recommend from '@/pages/recommend/Recommend'
 import SongSheet from '@/pages/recommend/components/song-sheet'
+import UserCenter from '@/pages/user-center/UserCenter'
 
 Vue.use(Router)
 
@@ -55,6 +56,11 @@ export default new Router({
       path: '/search',
       name: 'Search',
       component: Search
+    },
+    {
+      path: '/user',
+      name: 'User',
+      component: UserCenter
     }
   ]
 })
